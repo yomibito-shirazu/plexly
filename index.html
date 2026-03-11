@@ -2,9 +2,511 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>plexly</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <style>html { background: #0a0a0f; }</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0a0a0f;
+      --card-bg: #0e0e16;
+      --text: #dcdce8;
+      --text-muted: #7a7a9a;
+      --accent-a: #6e5fd4;
+      --accent-b: #4a90d9;
+      --accent-c: #9b6fd4;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    #particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-shapes {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .bg-shapes svg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* landing is exactly one viewport tall, card centered inside */
+    .landing {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      gap: 1.2rem;
+    }
+
+    .landing-card-area {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    /* more cards flow naturally below the landing section */
+    .more {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+
+    .more-inner {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    @media (min-width: 700px) {
+      .more-inner {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+
+
+    /* ---- section ---- */
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .section-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0 0.2rem;
+    }
+
+    .section-heading {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 300;
+      letter-spacing: 0.01em;
+    }
+    .section-heading strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* ---- status + flicker dot ---- */
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    @keyframes flicker {
+      0%   { opacity: 1; }
+      47%  { opacity: 1; }
+      48%  { opacity: 0.3; }
+      49%  { opacity: 1; }
+      62%  { opacity: 1; }
+      63%  { opacity: 0.15; }
+      64%  { opacity: 1; }
+      65%  { opacity: 0.6; }
+      66%  { opacity: 1; }
+      100% { opacity: 1; }
+    }
+
+    .online-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4caf76;
+      flex-shrink: 0;
+      box-shadow: 0 0 5px rgba(76, 175, 118, 0.6);
+      animation: flicker 4s ease-in-out infinite;
+    }
+
+    /* ---- card ---- */
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-wrapper {
+      position: relative;
+      border-radius: 16px;
+      opacity: 0;
+      animation: fadein 0.7s ease 0.1s forwards;
+    }
+
+    /*
+      gradient border via ::before mask trick.
+      pointer-events: none is critical — without it the pseudo-element
+      sits on top of the card and swallows clicks.
+    */
+    .card-wrapper::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      padding: 2px;
+      background: linear-gradient(135deg, var(--accent-a), var(--accent-b), var(--accent-c));
+      -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0.25;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+
+    .card-wrapper:hover::before { opacity: 1; }
+
+    /* no z-index on .card — keeps it below ::before in stacking so border shows */
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 14px;
+      padding: 2rem 2.4rem;
+    }
+
+    .card-title {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1.4rem;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, rgba(110,95,212,0.5), rgba(74,144,217,0.25), transparent);
+      margin-bottom: 1.6rem;
+    }
+
+    .bio {
+      font-size: 0.875rem;
+      line-height: 1.9;
+      color: var(--text);
+      margin-bottom: 2rem;
+    }
+
+    .socials {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .sep {
+      margin: 0 0.3rem;
+      opacity: 0.35;
+    }
+
+    .placeholder {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      opacity: 0.4;
+      text-align: center;
+      padding: 2.5rem;
+    }
+
+    /* scroll hint pinned to bottom of landing */
+    .scroll-hint {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      opacity: 0.45;
+      transition: opacity 0.6s ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .scroll-hint.hidden {
+      opacity: 0;
+    }
+
+    /* more cards start invisible and fade up when scrolled into view */
+    .more .card-wrapper {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      /* override the landing card's CSS animation */
+      animation: none;
+    }
+
+    .more .card-wrapper.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    a {
+      text-decoration: none;
+      color: var(--text-muted);
+      transition: color 0.2s ease;
+    }
+
+    a:hover {
+      background: linear-gradient(90deg, var(--accent-a), var(--accent-b), var(--accent-c));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  </style>
 </head>
 <body>
-  <p>oh my go.... holy makerel!</p>
+
+  <canvas id="particles"></canvas>
+
+  <div class="bg-shapes">
+    <svg viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="#6e5fd4" stop-opacity="0.15" />
+          <stop offset="50%"  stop-color="#4a90d9" stop-opacity="0.09" />
+          <stop offset="100%" stop-color="#9b6fd4" stop-opacity="0.15" />
+        </linearGradient>
+      </defs>
+      <circle cx="880" cy="130" r="280" fill="none" stroke="url(#sg)" stroke-width="1" />
+      <circle cx="880" cy="130" r="180" fill="none" stroke="url(#sg)" stroke-width="0.6" />
+      <circle cx="100" cy="900" r="160" fill="none" stroke="url(#sg)" stroke-width="0.8" />
+      <circle cx="100" cy="900" r="90"  fill="none" stroke="url(#sg)" stroke-width="0.5" />
+      <line x1="0"   y1="320" x2="380"  y2="0"    stroke="url(#sg)" stroke-width="0.5" />
+      <line x1="620" y1="1000" x2="1000" y2="640" stroke="url(#sg)" stroke-width="0.5" />
+      <line x1="55"  y1="480" x2="95"   y2="480"  stroke="url(#sg)" stroke-width="0.7" />
+      <line x1="75"  y1="460" x2="75"   y2="500"  stroke="url(#sg)" stroke-width="0.7" />
+      <line x1="920" y1="530" x2="960"  y2="530"  stroke="url(#sg)" stroke-width="0.7" />
+      <line x1="940" y1="510" x2="940"  y2="550"  stroke="url(#sg)" stroke-width="0.7" />
+    </svg>
+  </div>
+
+  <!-- landing: exactly 100vh, card vertically centered -->
+  <section class="landing">
+    <div class="landing-card-area">
+
+      <div class="section">
+        <div class="section-meta">
+          <!-- HEADING: the bold word is your name -->
+          <span class="section-heading">hi, i'm <strong>plexly</strong></span>
+          <span class="status">
+            <span class="online-dot"></span>
+            <!-- CHANGE STATUS: replace the song title between > and </a>, and update the link in href="..." -->
+            listening to: <a href="https://www.youtube.com/" target="_blank" rel="noopener">idk yet</a>
+          </span>
+        </div>
+
+        <div class="card-wrapper">
+          <div class="card">
+            <div class="card-title">about me</div>
+            <div class="divider"></div>
+
+            <!-- BIO: rewrite the text inside each <p>...</p> however you want, add or remove lines freely -->
+            <div class="bio">
+              <p>girls好き.</p>
+            </div>
+
+            <div class="socials">
+              <!-- SOCIAL LINKS: replace the URL inside href="..." for each one with your actual profile link -->
+              <a href="https://github.com/" target="_blank" rel="noopener">github</a>
+              <span class="sep">/</span>
+              <a href="https://twitter.com/" target="_blank" rel="noopener">twitter</a>
+              <span class="sep">/</span>
+              <a href="https://discord.com/" target="_blank" rel="noopener">discord</a>
+              <span class="sep">/</span>
+              <a href="https://youtube.com/" target="_blank" rel="noopener">youtube</a>
+              <span class="sep">/</span>
+              <a href="https://instagram.com/" target="_blank" rel="noopener">instagram</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+    </div>
+
+    <!-- scroll hint, fades out once user scrolls -->
+    <span class="scroll-hint" id="scroll-hint">work in progress</span>
+
+  </section>
+
+  <!-- more cards: directly below the landing section in normal document flow -->
+  <div class="more" id="more">
+    <div class="more-inner">
+
+      <!--
+        PROJECTS: when you're ready to add a card, uncomment the block below (remove the opening "<!- -" and closing "- ->" around it)
+        then update the following:
+          - section-heading: the small label above the card (e.g. "projects", "tools", etc.)
+          - card-title: the name of the project inside the card
+          - the two <p> lines inside .bio: your description
+          - the href="..." on each link and the link text itself
+        duplicate the whole block to add more cards — they'll fill the grid automatically
+      -->
+
+      <!--
+      <div class="section">
+        <div class="section-meta">
+          <span class="section-heading">projects</span>
+        </div>
+        <div class="card-wrapper">
+          <div class="card">
+            <div class="card-title">project name</div>
+            <div class="divider"></div>
+            <div class="bio">
+              <p>lorem ipsum dolor sit amet, consectetur adipiscing elit. sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+              <p>ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+            </div>
+            <div class="socials">
+              <a href="#">github</a>
+              <span class="sep">/</span>
+              <a href="#">live demo</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-meta">
+          <span class="section-heading">projects</span>
+        </div>
+        <div class="card-wrapper">
+          <div class="card">
+            <div class="card-title">another project</div>
+            <div class="divider"></div>
+            <div class="bio">
+              <p>duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+              <p>excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            </div>
+            <div class="socials">
+              <a href="#">github</a>
+              <span class="sep">/</span>
+              <a href="#">live demo</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      -->
+
+    </div>
+  </div>
+
+  <script>
+    // ---- scroll hint fade ----
+    const scrollHint = document.getElementById('scroll-hint');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 40) {
+        scrollHint.classList.add('hidden');
+      } else {
+        scrollHint.classList.remove('hidden');
+      }
+    }, { passive: true });
+
+    // ---- fade-in cards on scroll via IntersectionObserver ----
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target); // only animate once
+        }
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.more .card-wrapper').forEach(el => observer.observe(el));
+
+    // ---- particles ----
+    const canvas = document.getElementById('particles');
+    const ctx    = canvas.getContext('2d');
+
+    const COUNT  = 28;
+    const COLORS = ['rgba(110,95,212,', 'rgba(74,144,217,', 'rgba(155,111,212,'];
+
+    let W, H, particles, rafId;
+
+    function resize() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+
+    function mkParticle(fromBottom) {
+      return {
+        x:     Math.random() * W * 0.45,
+        y:     fromBottom ? H + Math.random() * 30 : Math.random() * H,
+        r:     0.8 + Math.random() * 1.4,
+        vx:    0.08 + Math.random() * 0.12,
+        vy:   -(0.1  + Math.random() * 0.18),
+        a:     0.15 + Math.random() * 0.35,
+        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      };
+    }
+
+    function init() {
+      particles = Array.from({ length: COUNT }, () => mkParticle(false));
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color + p.a + ')';
+        ctx.fill();
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.y < -10 || p.x > W + 10) particles[i] = mkParticle(true);
+      }
+      rafId = requestAnimationFrame(draw);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cancelAnimationFrame(rafId);
+      else rafId = requestAnimationFrame(draw);
+    });
+
+    window.addEventListener('resize', resize);
+
+    resize();
+    init();
+    draw();
+  </script>
+
 </body>
 </html>
