@@ -289,6 +289,14 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
+
+    .discord-copy:hover {
+    background: linear-gradient(90deg, var(--accent-a), var(--accent-b), var(--accent-c));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    }
+
   </style>
 </head>
 <body>
@@ -348,6 +356,12 @@
               <span class="sep">/</span>
               <a href="https://twitter.com/plexly_" target="_blank" rel="noopener">twitter</a>
               <span class="sep">/</span>
+              <span class="sep">/</span>
+              <span class="discord-copy" onclick="
+                navigator.clipboard.writeText('plexly');
+                this.textContent = 'copied';
+                setTimeout(() => this.textContent = 'discord', 1500);
+              " style="cursor:pointer; transition: color 0.2s ease;">discord</span>
               <a href="https://www.youtube.com/@yomibito.4razu" target="_blank" rel="noopener">youtube</a>
               <span class="sep">/</span>
               <a href="https://www.instagram.com/plexly_/" target="_blank" rel="noopener">instagram</a>
